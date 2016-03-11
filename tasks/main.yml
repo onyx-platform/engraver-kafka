@@ -1,0 +1,40 @@
+---
+- name: Create a Docker volume for the Kafka data
+  shell: "docker volume create --name {{ kafka_volume_name }}"
+  become: yes
+
+- name: Create the directory for the Kafka config files
+  file:
+    path: "{{ kafka_host_config_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ remote_user }}"
+    group: "{{ remote_user }}"
+    recurse: yes
+  become: yes
+
+- name: Run the Kafka container
+  docker:
+    name: "{{ kafka_container_name }}"
+    image: "{{ kafka_docker_image }}"
+    detach: yes
+    state: reloaded
+    restart_policy: always
+    restart_policy_retry: 128
+    net: host
+    volumes:
+      - "{{ kafka_volume_name }}:{{ kafka_data_dir }}"
+    env:
+      KAFKA_ADVERTISED_HOST_NAME: "{{ private_ip }}"
+      KAFKA_BROKER_ID: "{{ inventory_hostname | natural_index_of(groups['kafka']) }}"
+      ZOOKEEPER_IP: "{{ zk_addresses }}"
+
+- name: Wait for Kafka server to come up
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    port: "{{ kafka_broker_host_port }}"
+    delay: 0
+    timeout: 60
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ inventory_hostname }}"
