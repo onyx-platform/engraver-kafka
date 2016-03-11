@@ -26,7 +26,7 @@
       - "{{ kafka_volume_name }}:{{ kafka_data_dir }}"
     env:
       KAFKA_ADVERTISED_HOST_NAME: "{{ private_ip }}"
-      KAFKA_BROKER_ID: "{{ inventory_hostname | natural_index_of(groups['kafka']) }}"
+      KAFKA_BROKER_ID: "{{ groups['kafka'] | natural_index_of(inventory_hostname) }}"
       ZOOKEEPER_IP: "{{ zk_addresses }}"
 
 - name: Wait for Kafka server to come up
