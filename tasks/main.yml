@@ -27,7 +27,7 @@
     env:
       KAFKA_ADVERTISED_HOST_NAME: "{{ private_ip }}"
       KAFKA_BROKER_ID: "{{ groups['kafka'] | natural_index_of(inventory_hostname) }}"
-      ZOOKEEPER_IP: "{{ zk_addresses }}"
+      ZOOKEEPER_IP: "{{ zk_conn_str }}"
 
 - name: Wait for Kafka server to come up
   wait_for:
